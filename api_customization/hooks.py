@@ -242,3 +242,10 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+api_paths = [
+    {
+        "method": "GET",
+        "path": "get_user_modules",
+        "function": "api_customization.api.list_modules.get_user_modules",
+    }
+]
