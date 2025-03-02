@@ -1,12 +1,12 @@
-
 import frappe
 from frappe import _
 
 
-@frappe.whitelist(allow_guest=False)
-def get_user_details(user_email):
-    """Fetch user details by email."""
+@frappe.whitelist()
+def get_user_details():
+    """Fetch details of the currently authenticated user."""
     try:
+        user_email = frappe.session.user  # Get the authenticated user's email
         user = frappe.get_doc("User", user_email)
         return {
             "email": user.email,
@@ -22,17 +22,13 @@ def get_user_details(user_email):
         frappe.throw(_("User not found"), frappe.DoesNotExistError)
 
 
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist()
 def update_user_details(
-    user_email,
-    first_name=None,
-    middle_name=None,
-    last_name=None,
-    language=None,
-    time_zone=None,
+    first_name=None, middle_name=None, last_name=None, language=None, time_zone=None
 ):
-    """Update user details"""
+    """Update details of the currently authenticated user."""
     try:
+        user_email = frappe.session.user  # Get the authenticated user's email
         user = frappe.get_doc("User", user_email)
 
         if first_name:
@@ -48,6 +44,7 @@ def update_user_details(
 
         user.save()
         frappe.db.commit()
+
         user_data = {
             "email": user.email,
             "first_name": user.first_name,
