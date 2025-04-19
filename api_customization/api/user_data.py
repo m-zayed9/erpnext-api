@@ -4,9 +4,8 @@ from frappe import _
 
 @frappe.whitelist()
 def get_user_details():
-    """Fetch details of the currently authenticated user."""
     try:
-        user_email = frappe.session.user  # Get the authenticated user's email
+        user_email = frappe.session.user
         user = frappe.get_doc("User", user_email)
         return {
             "email": user.email,
@@ -26,9 +25,8 @@ def get_user_details():
 def update_user_details(
     first_name=None, middle_name=None, last_name=None, language=None, time_zone=None
 ):
-    """Update details of the currently authenticated user."""
     try:
-        user_email = frappe.session.user  # Get the authenticated user's email
+        user_email = frappe.session.user
         user = frappe.get_doc("User", user_email)
 
         if first_name:
