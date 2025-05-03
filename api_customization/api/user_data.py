@@ -17,6 +17,7 @@ def get_user_details():
             "username": user.username,
             "language": user.language,
             "time_zone": user.time_zone,
+            "image": user.user_image,
         }
     except frappe.DoesNotExistError:
         frappe.throw(_("User not found"), frappe.DoesNotExistError)
@@ -24,7 +25,7 @@ def get_user_details():
 
 @frappe.whitelist()
 def update_user_details(
-    first_name=None, middle_name=None, last_name=None, language=None, time_zone=None
+    first_name=None, middle_name=None, last_name=None, language=None, time_zone=None,user_image=None
 ):
     """Update details of the currently authenticated user."""
     try:
@@ -41,6 +42,8 @@ def update_user_details(
             user.language = language
         if time_zone:
             user.time_zone = time_zone
+        if user_image:
+            user.user_image = user_image
 
         user.save()
         frappe.db.commit()
@@ -54,6 +57,7 @@ def update_user_details(
             "username": user.username,
             "language": user.language,
             "time_zone": user.time_zone,
+            "user_image": user.user_image,
         }
 
         return {"message": "User updated successfully", "user": user_data}
