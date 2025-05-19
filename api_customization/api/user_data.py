@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.utils.file_manager import save_file
 
 
 @frappe.whitelist()
@@ -22,14 +23,16 @@ def get_user_details():
         frappe.throw(_("User not found"), frappe.DoesNotExistError)
 
 
+
 @frappe.whitelist()
 def update_user_details(
-    first_name=None, middle_name=None, last_name=None, language=None, time_zone=None,user_image=None
+    first_name=None, middle_name=None, last_name=None, language=None, time_zone=None
 ):
     try:
         user_email = frappe.session.user
         user = frappe.get_doc("User", user_email)
 
+        # Handle standard fields
         if first_name:
             user.first_name = first_name
         if middle_name:
@@ -40,8 +43,19 @@ def update_user_details(
             user.language = language
         if time_zone:
             user.time_zone = time_zone
-        if user_image:
-            user.user_image = user_image
+
+        # Handle file upload (from form-data)
+        file = frappe.request.files.get("user_image")
+        if file:
+            saved_file = save_file(
+                fname=file.filename,
+                content=file.stream.read(),
+                dt="User",
+                dn=user.name,
+                is_private=0,
+            )
+
+            user.user_image = saved_file.file_url
 
         user.save()
         frappe.db.commit()
@@ -59,5 +73,32 @@ def update_user_details(
         }
 
         return {"message": "User updated successfully", "user": user_data}
+
     except frappe.DoesNotExistError:
         frappe.throw(_("User not found"), frappe.DoesNotExistError)
+
+
+@frappe.whitelist()
+def add_comment(
+        reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
+):
+    reference_doc = frappe.get_doc(reference_doctype, reference_name)
+    reference_doc.check_permission()
+
+    comment = frappe.new_doc("Comment")
+    comment.update(
+            {
+                    "comment_type": "Comment",
+                    "reference_doctype": reference_doctype,
+                    "reference_name": reference_name,
+                    "comment_email": comment_email,
+                    "comment_by": comment_by,
+                    "content": content,
+            }
+    )
+    comment.insert(ignore_permissions=True)
+
+    #if frappe.get_cached_value("User", frappe.session.user, "follow_commented_documents"):
+    #follow_document(comment.reference_doctype, comment.reference_name, frappe.session.user)
+
+    return comment
